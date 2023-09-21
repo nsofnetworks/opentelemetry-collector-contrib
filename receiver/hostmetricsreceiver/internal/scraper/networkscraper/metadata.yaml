@@ -82,3 +82,37 @@ metrics:
       value_type: int
       aggregation_temporality: cumulative
       monotonic: false
+  system.network.udp.datagrams:
+    enabled: false
+    description: The number of udp datagrams transmitted and received.
+    unit: "{datagrams}"
+    sum:
+      value_type: int
+      aggregation_temporality: cumulative
+      monotonic: true
+    attributes: [direction]
+  system.network.udp.buf_errors:
+    enabled: false
+    description: The number of udp RcvbufErrors or SndbufErrors.
+    unit: "{errors}"
+    sum:
+      value_type: int
+      aggregation_temporality: cumulative
+      monotonic: true
+    attributes: [direction]
+  system.network.udp.no_ports:
+    enabled: false
+    description: The packets to unknown port received.
+    unit: "{packets}"
+    sum:
+      value_type: int
+      aggregation_temporality: cumulative
+      monotonic: true
+  system.network.udp.errors:
+    enabled: false
+    description: The packet receive errors.
+    unit: "{errors}"
+    sum:
+      value_type: int
+      aggregation_temporality: cumulative
+      monotonic: true

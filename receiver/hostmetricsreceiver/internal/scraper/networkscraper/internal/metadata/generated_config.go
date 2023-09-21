@@ -32,6 +32,10 @@ type MetricsConfig struct {
 	SystemNetworkErrors         MetricConfig `mapstructure:"system.network.errors"`
 	SystemNetworkIo             MetricConfig `mapstructure:"system.network.io"`
 	SystemNetworkPackets        MetricConfig `mapstructure:"system.network.packets"`
+	SystemNetworkUDPBufErrors   MetricConfig `mapstructure:"system.network.udp.buf_errors"`
+	SystemNetworkUDPDatagrams   MetricConfig `mapstructure:"system.network.udp.datagrams"`
+	SystemNetworkUDPErrors      MetricConfig `mapstructure:"system.network.udp.errors"`
+	SystemNetworkUDPNoPorts     MetricConfig `mapstructure:"system.network.udp.no_ports"`
 }
 
 func DefaultMetricsConfig() MetricsConfig {
@@ -56,6 +60,18 @@ func DefaultMetricsConfig() MetricsConfig {
 		},
 		SystemNetworkPackets: MetricConfig{
 			Enabled: true,
+		},
+		SystemNetworkUDPBufErrors: MetricConfig{
+			Enabled: false,
+		},
+		SystemNetworkUDPDatagrams: MetricConfig{
+			Enabled: false,
+		},
+		SystemNetworkUDPErrors: MetricConfig{
+			Enabled: false,
+		},
+		SystemNetworkUDPNoPorts: MetricConfig{
+			Enabled: false,
 		},
 	}
 }

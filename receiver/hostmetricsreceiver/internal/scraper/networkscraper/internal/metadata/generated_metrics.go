@@ -432,6 +432,214 @@ func newMetricSystemNetworkPackets(cfg MetricConfig) metricSystemNetworkPackets 
 	return m
 }
 
+type metricSystemNetworkUDPBufErrors struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills system.network.udp.buf_errors metric with initial data.
+func (m *metricSystemNetworkUDPBufErrors) init() {
+	m.data.SetName("system.network.udp.buf_errors")
+	m.data.SetDescription("The number of udp RcvbufErrors or SndbufErrors.")
+	m.data.SetUnit("{errors}")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(true)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricSystemNetworkUDPBufErrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, directionAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("direction", directionAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricSystemNetworkUDPBufErrors) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricSystemNetworkUDPBufErrors) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricSystemNetworkUDPBufErrors(cfg MetricConfig) metricSystemNetworkUDPBufErrors {
+	m := metricSystemNetworkUDPBufErrors{config: cfg}
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricSystemNetworkUDPDatagrams struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills system.network.udp.datagrams metric with initial data.
+func (m *metricSystemNetworkUDPDatagrams) init() {
+	m.data.SetName("system.network.udp.datagrams")
+	m.data.SetDescription("The number of udp datagrams transmitted and received.")
+	m.data.SetUnit("{datagrams}")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(true)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+	m.data.Sum().DataPoints().EnsureCapacity(m.capacity)
+}
+
+func (m *metricSystemNetworkUDPDatagrams) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64, directionAttributeValue string) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+	dp.Attributes().PutStr("direction", directionAttributeValue)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricSystemNetworkUDPDatagrams) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricSystemNetworkUDPDatagrams) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricSystemNetworkUDPDatagrams(cfg MetricConfig) metricSystemNetworkUDPDatagrams {
+	m := metricSystemNetworkUDPDatagrams{config: cfg}
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricSystemNetworkUDPErrors struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills system.network.udp.errors metric with initial data.
+func (m *metricSystemNetworkUDPErrors) init() {
+	m.data.SetName("system.network.udp.errors")
+	m.data.SetDescription("The packet receive errors.")
+	m.data.SetUnit("{errors}")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(true)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+}
+
+func (m *metricSystemNetworkUDPErrors) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricSystemNetworkUDPErrors) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricSystemNetworkUDPErrors) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricSystemNetworkUDPErrors(cfg MetricConfig) metricSystemNetworkUDPErrors {
+	m := metricSystemNetworkUDPErrors{config: cfg}
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
+type metricSystemNetworkUDPNoPorts struct {
+	data     pmetric.Metric // data buffer for generated metric.
+	config   MetricConfig   // metric config provided by user.
+	capacity int            // max observed number of data points added to the metric.
+}
+
+// init fills system.network.udp.no_ports metric with initial data.
+func (m *metricSystemNetworkUDPNoPorts) init() {
+	m.data.SetName("system.network.udp.no_ports")
+	m.data.SetDescription("The packets to unknown port received.")
+	m.data.SetUnit("{packets}")
+	m.data.SetEmptySum()
+	m.data.Sum().SetIsMonotonic(true)
+	m.data.Sum().SetAggregationTemporality(pmetric.AggregationTemporalityCumulative)
+}
+
+func (m *metricSystemNetworkUDPNoPorts) recordDataPoint(start pcommon.Timestamp, ts pcommon.Timestamp, val int64) {
+	if !m.config.Enabled {
+		return
+	}
+	dp := m.data.Sum().DataPoints().AppendEmpty()
+	dp.SetStartTimestamp(start)
+	dp.SetTimestamp(ts)
+	dp.SetIntValue(val)
+}
+
+// updateCapacity saves max length of data point slices that will be used for the slice capacity.
+func (m *metricSystemNetworkUDPNoPorts) updateCapacity() {
+	if m.data.Sum().DataPoints().Len() > m.capacity {
+		m.capacity = m.data.Sum().DataPoints().Len()
+	}
+}
+
+// emit appends recorded metric data to a metrics slice and prepares it for recording another set of data points.
+func (m *metricSystemNetworkUDPNoPorts) emit(metrics pmetric.MetricSlice) {
+	if m.config.Enabled && m.data.Sum().DataPoints().Len() > 0 {
+		m.updateCapacity()
+		m.data.MoveTo(metrics.AppendEmpty())
+		m.init()
+	}
+}
+
+func newMetricSystemNetworkUDPNoPorts(cfg MetricConfig) metricSystemNetworkUDPNoPorts {
+	m := metricSystemNetworkUDPNoPorts{config: cfg}
+	if cfg.Enabled {
+		m.data = pmetric.NewMetric()
+		m.init()
+	}
+	return m
+}
+
 // MetricsBuilder provides an interface for scrapers to report metrics while taking care of all the transformations
 // required to produce metric representation defined in metadata and user config.
 type MetricsBuilder struct {
@@ -447,6 +655,10 @@ type MetricsBuilder struct {
 	metricSystemNetworkErrors         metricSystemNetworkErrors
 	metricSystemNetworkIo             metricSystemNetworkIo
 	metricSystemNetworkPackets        metricSystemNetworkPackets
+	metricSystemNetworkUDPBufErrors   metricSystemNetworkUDPBufErrors
+	metricSystemNetworkUDPDatagrams   metricSystemNetworkUDPDatagrams
+	metricSystemNetworkUDPErrors      metricSystemNetworkUDPErrors
+	metricSystemNetworkUDPNoPorts     metricSystemNetworkUDPNoPorts
 }
 
 // metricBuilderOption applies changes to default metrics builder.
@@ -472,6 +684,10 @@ func NewMetricsBuilder(mbc MetricsBuilderConfig, settings receiver.CreateSetting
 		metricSystemNetworkErrors:         newMetricSystemNetworkErrors(mbc.Metrics.SystemNetworkErrors),
 		metricSystemNetworkIo:             newMetricSystemNetworkIo(mbc.Metrics.SystemNetworkIo),
 		metricSystemNetworkPackets:        newMetricSystemNetworkPackets(mbc.Metrics.SystemNetworkPackets),
+		metricSystemNetworkUDPBufErrors:   newMetricSystemNetworkUDPBufErrors(mbc.Metrics.SystemNetworkUDPBufErrors),
+		metricSystemNetworkUDPDatagrams:   newMetricSystemNetworkUDPDatagrams(mbc.Metrics.SystemNetworkUDPDatagrams),
+		metricSystemNetworkUDPErrors:      newMetricSystemNetworkUDPErrors(mbc.Metrics.SystemNetworkUDPErrors),
+		metricSystemNetworkUDPNoPorts:     newMetricSystemNetworkUDPNoPorts(mbc.Metrics.SystemNetworkUDPNoPorts),
 	}
 	for _, op := range options {
 		op(mb)
@@ -536,6 +752,10 @@ func (mb *MetricsBuilder) EmitForResource(rmo ...ResourceMetricsOption) {
 	mb.metricSystemNetworkErrors.emit(ils.Metrics())
 	mb.metricSystemNetworkIo.emit(ils.Metrics())
 	mb.metricSystemNetworkPackets.emit(ils.Metrics())
+	mb.metricSystemNetworkUDPBufErrors.emit(ils.Metrics())
+	mb.metricSystemNetworkUDPDatagrams.emit(ils.Metrics())
+	mb.metricSystemNetworkUDPErrors.emit(ils.Metrics())
+	mb.metricSystemNetworkUDPNoPorts.emit(ils.Metrics())
 
 	for _, op := range rmo {
 		op(rm)
@@ -589,6 +809,26 @@ func (mb *MetricsBuilder) RecordSystemNetworkIoDataPoint(ts pcommon.Timestamp, v
 // RecordSystemNetworkPacketsDataPoint adds a data point to system.network.packets metric.
 func (mb *MetricsBuilder) RecordSystemNetworkPacketsDataPoint(ts pcommon.Timestamp, val int64, deviceAttributeValue string, directionAttributeValue AttributeDirection) {
 	mb.metricSystemNetworkPackets.recordDataPoint(mb.startTime, ts, val, deviceAttributeValue, directionAttributeValue.String())
+}
+
+// RecordSystemNetworkUDPBufErrorsDataPoint adds a data point to system.network.udp.buf_errors metric.
+func (mb *MetricsBuilder) RecordSystemNetworkUDPBufErrorsDataPoint(ts pcommon.Timestamp, val int64, directionAttributeValue AttributeDirection) {
+	mb.metricSystemNetworkUDPBufErrors.recordDataPoint(mb.startTime, ts, val, directionAttributeValue.String())
+}
+
+// RecordSystemNetworkUDPDatagramsDataPoint adds a data point to system.network.udp.datagrams metric.
+func (mb *MetricsBuilder) RecordSystemNetworkUDPDatagramsDataPoint(ts pcommon.Timestamp, val int64, directionAttributeValue AttributeDirection) {
+	mb.metricSystemNetworkUDPDatagrams.recordDataPoint(mb.startTime, ts, val, directionAttributeValue.String())
+}
+
+// RecordSystemNetworkUDPErrorsDataPoint adds a data point to system.network.udp.errors metric.
+func (mb *MetricsBuilder) RecordSystemNetworkUDPErrorsDataPoint(ts pcommon.Timestamp, val int64) {
+	mb.metricSystemNetworkUDPErrors.recordDataPoint(mb.startTime, ts, val)
+}
+
+// RecordSystemNetworkUDPNoPortsDataPoint adds a data point to system.network.udp.no_ports metric.
+func (mb *MetricsBuilder) RecordSystemNetworkUDPNoPortsDataPoint(ts pcommon.Timestamp, val int64) {
+	mb.metricSystemNetworkUDPNoPorts.recordDataPoint(mb.startTime, ts, val)
 }
 
 // Reset resets metrics builder to its initial state. It should be used when external metrics source is restarted,

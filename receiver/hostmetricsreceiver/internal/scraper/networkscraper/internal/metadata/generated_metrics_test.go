@@ -80,6 +80,18 @@ func TestMetricsBuilder(t *testing.T) {
 			allMetricsCount++
 			mb.RecordSystemNetworkPacketsDataPoint(ts, 1, "device-val", AttributeDirectionReceive)
 
+			allMetricsCount++
+			mb.RecordSystemNetworkUDPBufErrorsDataPoint(ts, 1, AttributeDirectionReceive)
+
+			allMetricsCount++
+			mb.RecordSystemNetworkUDPDatagramsDataPoint(ts, 1, AttributeDirectionReceive)
+
+			allMetricsCount++
+			mb.RecordSystemNetworkUDPErrorsDataPoint(ts, 1)
+
+			allMetricsCount++
+			mb.RecordSystemNetworkUDPNoPortsDataPoint(ts, 1)
+
 			res := pcommon.NewResource()
 			metrics := mb.Emit(WithResource(res))
 
@@ -230,6 +242,68 @@ func TestMetricsBuilder(t *testing.T) {
 					attrVal, ok = dp.Attributes().Get("direction")
 					assert.True(t, ok)
 					assert.EqualValues(t, "receive", attrVal.Str())
+				case "system.network.udp.buf_errors":
+					assert.False(t, validatedMetrics["system.network.udp.buf_errors"], "Found a duplicate in the metrics slice: system.network.udp.buf_errors")
+					validatedMetrics["system.network.udp.buf_errors"] = true
+					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
+					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
+					assert.Equal(t, "The number of udp RcvbufErrors or SndbufErrors.", ms.At(i).Description())
+					assert.Equal(t, "{errors}", ms.At(i).Unit())
+					assert.Equal(t, true, ms.At(i).Sum().IsMonotonic())
+					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
+					dp := ms.At(i).Sum().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+					assert.Equal(t, int64(1), dp.IntValue())
+					attrVal, ok := dp.Attributes().Get("direction")
+					assert.True(t, ok)
+					assert.EqualValues(t, "receive", attrVal.Str())
+				case "system.network.udp.datagrams":
+					assert.False(t, validatedMetrics["system.network.udp.datagrams"], "Found a duplicate in the metrics slice: system.network.udp.datagrams")
+					validatedMetrics["system.network.udp.datagrams"] = true
+					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
+					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
+					assert.Equal(t, "The number of udp datagrams transmitted and received.", ms.At(i).Description())
+					assert.Equal(t, "{datagrams}", ms.At(i).Unit())
+					assert.Equal(t, true, ms.At(i).Sum().IsMonotonic())
+					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
+					dp := ms.At(i).Sum().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+					assert.Equal(t, int64(1), dp.IntValue())
+					attrVal, ok := dp.Attributes().Get("direction")
+					assert.True(t, ok)
+					assert.EqualValues(t, "receive", attrVal.Str())
+				case "system.network.udp.errors":
+					assert.False(t, validatedMetrics["system.network.udp.errors"], "Found a duplicate in the metrics slice: system.network.udp.errors")
+					validatedMetrics["system.network.udp.errors"] = true
+					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
+					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
+					assert.Equal(t, "The packet receive errors.", ms.At(i).Description())
+					assert.Equal(t, "{errors}", ms.At(i).Unit())
+					assert.Equal(t, true, ms.At(i).Sum().IsMonotonic())
+					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
+					dp := ms.At(i).Sum().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+					assert.Equal(t, int64(1), dp.IntValue())
+				case "system.network.udp.no_ports":
+					assert.False(t, validatedMetrics["system.network.udp.no_ports"], "Found a duplicate in the metrics slice: system.network.udp.no_ports")
+					validatedMetrics["system.network.udp.no_ports"] = true
+					assert.Equal(t, pmetric.MetricTypeSum, ms.At(i).Type())
+					assert.Equal(t, 1, ms.At(i).Sum().DataPoints().Len())
+					assert.Equal(t, "The packets to unknown port received.", ms.At(i).Description())
+					assert.Equal(t, "{packets}", ms.At(i).Unit())
+					assert.Equal(t, true, ms.At(i).Sum().IsMonotonic())
+					assert.Equal(t, pmetric.AggregationTemporalityCumulative, ms.At(i).Sum().AggregationTemporality())
+					dp := ms.At(i).Sum().DataPoints().At(0)
+					assert.Equal(t, start, dp.StartTimestamp())
+					assert.Equal(t, ts, dp.Timestamp())
+					assert.Equal(t, pmetric.NumberDataPointValueTypeInt, dp.ValueType())
+					assert.Equal(t, int64(1), dp.IntValue())
 				}
 			}
 		})
