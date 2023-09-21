@@ -24,6 +24,7 @@ import (
 const (
 	networkMetricsLen     = 4
 	connectionsMetricsLen = 1
+	protoMetricsLen       = 4
 )
 
 // scraper for Network Metrics
@@ -36,21 +37,23 @@ type scraper struct {
 	excludeFS filterset.FilterSet
 
 	// for mocking
-	bootTime    func(context.Context) (uint64, error)
-	ioCounters  func(context.Context, bool) ([]net.IOCountersStat, error)
-	connections func(context.Context, string) ([]net.ConnectionStat, error)
-	conntrack   func(context.Context) ([]net.FilterStat, error)
+	bootTime      func(context.Context) (uint64, error)
+	ioCounters    func(context.Context, bool) ([]net.IOCountersStat, error)
+	connections   func(context.Context, string) ([]net.ConnectionStat, error)
+	conntrack     func(context.Context) ([]net.FilterStat, error)
+	protoCounters func(context.Context, []string) ([]net.ProtoCountersStat, error)
 }
 
 // newNetworkScraper creates a set of Network related metrics
 func newNetworkScraper(_ context.Context, settings receiver.CreateSettings, cfg *Config) (*scraper, error) {
 	scraper := &scraper{
-		settings:    settings,
-		config:      cfg,
-		bootTime:    host.BootTimeWithContext,
-		ioCounters:  net.IOCountersWithContext,
-		connections: net.ConnectionsWithContext,
-		conntrack:   net.FilterCountersWithContext,
+		settings:      settings,
+		config:        cfg,
+		bootTime:      host.BootTimeWithContext,
+		ioCounters:    net.IOCountersWithContext,
+		connections:   net.ConnectionsWithContext,
+		conntrack:     net.FilterCountersWithContext,
+		protoCounters: net.ProtoCountersWithContext,
 	}
 
 	var err error
@@ -102,7 +105,53 @@ func (s *scraper) scrape(_ context.Context) (pmetric.Metrics, error) {
 		errors.AddPartial(connectionsMetricsLen, err)
 	}
 
+	err = s.recordNetworkProtoCounterMetrics()
+	if err != nil {
+		errors.AddPartial(protoMetricsLen, err)
+	}
+
 	return s.mb.Emit(), errors.Combine()
+}
+
+func (s *scraper) recordNetworkProtoCounterMetrics() error {
+	enabled := s.config.Metrics.SystemNetworkUDPDatagrams.Enabled ||
+		s.config.Metrics.SystemNetworkUDPBufErrors.Enabled ||
+		s.config.Metrics.SystemNetworkUDPErrors.Enabled ||
+		s.config.Metrics.SystemNetworkUDPNoPorts.Enabled
+	if !enabled {
+		return nil
+	}
+	ctx := context.WithValue(context.Background(), common.EnvKey, s.config.EnvMap)
+	now := pcommon.NewTimestampFromTime(time.Now())
+
+	// get udp counters only
+	protoCounters, err := net.ProtoCountersWithContext(ctx, []string{"udp"})
+	if err != nil {
+		return fmt.Errorf("failed to read network proto counters: %w", err)
+	}
+
+	if len(protoCounters) == 0 {
+		return fmt.Errorf("no network proto counters available")
+	}
+
+	for _, counter := range protoCounters {
+		if s.config.Metrics.SystemNetworkUDPDatagrams.Enabled {
+			s.mb.RecordSystemNetworkUDPDatagramsDataPoint(now, counter.Stats["OutDatagrams"], metadata.AttributeDirectionTransmit)
+			s.mb.RecordSystemNetworkUDPDatagramsDataPoint(now, counter.Stats["InDatagrams"], metadata.AttributeDirectionReceive)
+		}
+		if s.config.Metrics.SystemNetworkUDPBufErrors.Enabled {
+			s.mb.RecordSystemNetworkUDPBufErrorsDataPoint(now, counter.Stats["SndbufErrors"], metadata.AttributeDirectionTransmit)
+			s.mb.RecordSystemNetworkUDPBufErrorsDataPoint(now, counter.Stats["RcvbufErrors"], metadata.AttributeDirectionReceive)
+		}
+		if s.config.Metrics.SystemNetworkUDPErrors.Enabled {
+			s.mb.RecordSystemNetworkUDPErrorsDataPoint(now, counter.Stats["InErrors"])
+		}
+		if s.config.Metrics.SystemNetworkUDPNoPorts.Enabled {
+			s.mb.RecordSystemNetworkUDPErrorsDataPoint(now, counter.Stats["NoPorts"])
+		}
+	}
+
+	return nil
 }
 
 func (s *scraper) recordNetworkCounterMetrics() error {
