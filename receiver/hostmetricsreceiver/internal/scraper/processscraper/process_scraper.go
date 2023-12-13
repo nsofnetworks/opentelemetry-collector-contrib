@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/shirou/gopsutil/v3/common"
+	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/process"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/pdata/pcommon"
@@ -54,6 +55,7 @@ type scraper struct {
 	getProcessHandles    func(context.Context) (processHandles, error)
 
 	handleCountManager handlecount.Manager
+	bootTime           int64
 }
 
 // newProcessScraper creates a Process Scraper
@@ -87,8 +89,15 @@ func newProcessScraper(settings receiver.CreateSettings, cfg *Config) (*scraper,
 	return scraper, nil
 }
 
-func (s *scraper) start(context.Context, component.Host) error {
+func (s *scraper) start(ctx context.Context, _ component.Host) error {
 	s.mb = metadata.NewMetricsBuilder(s.config.MetricsBuilderConfig, s.settings)
+	ctx = context.WithValue(ctx, common.EnvKey, s.config.EnvMap)
+	bt, err := host.BootTimeWithContext(ctx)
+	if err == nil {
+		s.bootTime = int64(bt) * 1000
+	} else {
+		s.bootTime = time.Now().UnixMilli()
+	}
 	return nil
 }
 
@@ -225,9 +234,17 @@ func (s *scraper) getProcessMetadata() ([]*processMetadata, error) {
 		createTime, err := s.getProcessCreateTime(handle, ctx)
 		if err != nil {
 			errs.AddPartial(0, fmt.Errorf("error reading create time for process %q (pid %v): %w", executable.name, pid, err))
-			// set the start time to now to avoid including this when a scrape_process_delay is set
-			createTime = time.Now().UnixMilli()
+			// set the start time to boot time
+			createTime = s.bootTime
 		}
+
+		if time.Now().UnixMilli() < createTime {
+			// getProcessCreateTime is bogus for lxc env
+			// see https://github.com/shirou/gopsutil/issues/1562
+			// use container boot time as createTime => resource startTime
+			createTime = s.bootTime
+		}
+
 		if s.scrapeProcessDelay.Milliseconds() > (time.Now().UnixMilli() - createTime) {
 			continue
 		}
