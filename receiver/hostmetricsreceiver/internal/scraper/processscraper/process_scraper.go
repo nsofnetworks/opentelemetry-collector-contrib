@@ -59,13 +59,15 @@ type scraper struct {
 // newProcessScraper creates a Process Scraper
 func newProcessScraper(settings receiver.CreateSettings, cfg *Config) (*scraper, error) {
 	scraper := &scraper{
-		settings:             settings,
-		config:               cfg,
-		getProcessCreateTime: processHandle.CreateTimeWithContext,
-		getProcessHandles:    getProcessHandlesInternal,
-		scrapeProcessDelay:   cfg.ScrapeProcessDelay,
-		ucals:                make(map[int32]*ucal.CPUUtilizationCalculator),
-		handleCountManager:   handlecount.NewManager(),
+		settings: settings,
+		config:   cfg,
+		getProcessCreateTime: func(p processHandle, ctx context.Context) (int64, error) {
+			return getProcessCreateTimeInternal(ctx, p)
+		},
+		getProcessHandles:  getProcessHandlesInternal,
+		scrapeProcessDelay: cfg.ScrapeProcessDelay,
+		ucals:              make(map[int32]*ucal.CPUUtilizationCalculator),
+		handleCountManager: handlecount.NewManager(),
 	}
 
 	var err error

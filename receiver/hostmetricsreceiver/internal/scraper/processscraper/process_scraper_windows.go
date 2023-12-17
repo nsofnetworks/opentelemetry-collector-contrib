@@ -64,3 +64,7 @@ func getProcessCommand(ctx context.Context, proc processHandle) (*commandMetadat
 	command := &commandMetadata{command: cmd, commandLine: cmdline}
 	return command, nil
 }
+
+func getProcessCreateTimeInternal(ctx context.Context, proc processHandle) (int64, error) {
+	return proc.CreateTimeWithContext(ctx)
+}

@@ -10,6 +10,7 @@ import (
 	"context"
 
 	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/host"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/hostmetricsreceiver/internal/scraper/processscraper/internal/metadata"
@@ -59,4 +60,19 @@ func getProcessCommand(ctx context.Context, proc processHandle) (*commandMetadat
 
 	command := &commandMetadata{command: cmd, commandLineSlice: cmdline}
 	return command, nil
+}
+
+func getProcessCreateTimeInternal(ctx context.Context, proc processHandle) (int64, error) {
+	vsystem, vrole, err := host.VirtualizationWithContext(ctx)
+	if err != nil {
+		return 0, err
+	}
+	if vsystem == "lxc" && vrole == "guest" {
+		bootTime, err := host.BootTimeWithContext(ctx)
+		if err != nil {
+			return 0, err
+		}
+		return int64(bootTime) * 1000, nil
+	}
+	return proc.CreateTimeWithContext(ctx)
 }

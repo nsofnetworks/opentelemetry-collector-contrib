@@ -32,3 +32,7 @@ func getProcessExecutable(context.Context, processHandle) (string, error) {
 func getProcessCommand(context.Context, processHandle) (*commandMetadata, error) {
 	return nil, nil
 }
+
+func getProcessCreateTimeInternal(ctx context.Context, proc processHandle) (int64, error) {
+	return 0, nil
+}
